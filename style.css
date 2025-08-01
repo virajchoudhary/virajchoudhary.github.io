@@ -24,7 +24,7 @@
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.25);
     --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.35);
-    --backdrop-blur-amount: 8px;
+    --backdrop-blur-amount: 5px;
     --link-color: var(--primary-accent);
     --header-height: 75px; /* Slightly taller */
     --border-radius: 12px;
