@@ -1,18 +1,20 @@
 "use client";
 
-import { useFrame, useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import {
   LinearFilter,
+  LinearMipmapLinearFilter,
   MathUtils,
-  Mesh,
   ShaderMaterial,
   SRGBColorSpace,
   Vector2,
 } from "three";
 
 import type { Uv } from "@/data/neuralProfiles";
+
+export type NeuralMaskMode = "base" | "branches" | "somas";
 
 const vertexShader = `
   varying vec2 vUv;
@@ -25,17 +27,13 @@ const vertexShader = `
 
 const fragmentShader = `
   uniform sampler2D uTexture;
-  uniform float uTime;
   uniform float uImageAspect;
   uniform float uViewportAspect;
+  uniform float uMaskMode;
   uniform float uOpacity;
-  uniform float uThreshold;
-  uniform float uSoftness;
   uniform float uBrightness;
-  uniform float uDepth;
-  uniform float uMotion;
-  uniform float uBlur;
-  uniform vec2 uPointer;
+  uniform float uContrast;
+  uniform vec2 uOffset;
   uniform vec2 uTexel;
   varying vec2 vUv;
 
@@ -49,106 +47,133 @@ const fragmentShader = `
     return (uv - 0.5) * scale + 0.5;
   }
 
-  vec4 sampleTexture(vec2 uv) {
-    vec4 base = texture2D(uTexture, uv);
-    if (uBlur < 0.5) return base;
-    vec2 spread = uTexel * 2.0;
-    return (
-      base * 0.36 +
-      texture2D(uTexture, uv + vec2(spread.x, 0.0)) * 0.16 +
-      texture2D(uTexture, uv - vec2(spread.x, 0.0)) * 0.16 +
-      texture2D(uTexture, uv + vec2(0.0, spread.y)) * 0.16 +
-      texture2D(uTexture, uv - vec2(0.0, spread.y)) * 0.16
-    );
+  float luminanceAt(vec2 uv) {
+    vec3 color = texture2D(uTexture, uv).rgb;
+    return dot(color, vec3(0.299, 0.587, 0.114));
   }
 
   void main() {
-    vec2 uv = coverUv(vUv);
-    float waveX = sin((uv.y * 6.4) + uTime * 0.08) * 0.00065;
-    float waveY = cos((uv.x * 5.7) - uTime * 0.065) * 0.00055;
-    vec2 microscopicDrift = vec2(waveX, waveY) * uMotion;
-    vec2 pointerDrift = uPointer * (0.00085 * uDepth) * uMotion;
-    vec4 texel = sampleTexture(uv + microscopicDrift + pointerDrift);
-    float luminance = dot(texel.rgb, vec3(0.299, 0.587, 0.114));
-    float mask = uThreshold < 0.0
-      ? 1.0
-      : smoothstep(uThreshold, uThreshold + uSoftness, luminance);
-    vec3 monochrome = vec3(luminance) * uBrightness;
-    gl_FragColor = vec4(monochrome, texel.a * uOpacity * mask);
+    vec2 uv = coverUv(vUv) + uOffset;
+    vec4 source = texture2D(uTexture, uv);
+    float luminance = dot(source.rgb, vec3(0.299, 0.587, 0.114));
+
+    vec2 branchSpread = uTexel * 9.0;
+    float branchDensity = (
+      luminance +
+      luminanceAt(uv + vec2(branchSpread.x, 0.0)) +
+      luminanceAt(uv - vec2(branchSpread.x, 0.0)) +
+      luminanceAt(uv + vec2(0.0, branchSpread.y)) +
+      luminanceAt(uv - vec2(0.0, branchSpread.y))
+    ) / 5.0;
+
+    vec2 somaSpread = uTexel * 22.0;
+    float somaDensity = (
+      branchDensity +
+      luminanceAt(uv + vec2(somaSpread.x, somaSpread.y)) +
+      luminanceAt(uv + vec2(-somaSpread.x, somaSpread.y)) +
+      luminanceAt(uv + vec2(somaSpread.x, -somaSpread.y)) +
+      luminanceAt(uv - somaSpread)
+    ) / 5.0;
+
+    float mask = 1.0;
+    if (uMaskMode > 0.5 && uMaskMode < 1.5) {
+      mask =
+        smoothstep(0.14, 0.34, branchDensity) *
+        smoothstep(0.10, 0.28, luminance);
+    } else if (uMaskMode >= 1.5) {
+      mask =
+        smoothstep(0.16, 0.38, somaDensity) *
+        smoothstep(0.48, 0.78, luminance);
+    }
+
+    float adjusted = clamp(
+      ((luminance - 0.5) * uContrast + 0.5) * uBrightness,
+      0.0,
+      1.0
+    );
+    vec3 monochrome = vec3(adjusted);
+    if (uMaskMode > 0.5) {
+      monochrome *= vec3(0.985, 1.0, 1.012);
+    }
+
+    gl_FragColor = vec4(monochrome, source.a * uOpacity * mask);
   }
 `;
 
 interface NeuralLayerProps {
-  depth: number;
+  maskMode: NeuralMaskMode;
   imageAspect: number;
   imageSize: readonly [number, number];
   opacity: number;
-  threshold: number;
-  softness: number;
   brightness: number;
-  blur?: boolean;
+  contrast: number;
+  parallaxPixels: number;
+  renderOrder: number;
   pointerRef: React.MutableRefObject<{ x: number; y: number }>;
   focusUv?: Uv;
   reducedMotion: boolean;
 }
 
+const maskValues: Record<NeuralMaskMode, number> = {
+  base: 0,
+  branches: 1,
+  somas: 2,
+};
+
 export function NeuralLayer({
-  depth,
+  maskMode,
   imageAspect,
   imageSize,
   opacity,
-  threshold,
-  softness,
   brightness,
-  blur = false,
+  contrast,
+  parallaxPixels,
+  renderOrder,
   pointerRef,
   focusUv,
   reducedMotion,
 }: NeuralLayerProps) {
-  const meshRef = useRef<Mesh>(null);
   const materialRef = useRef<ShaderMaterial>(null);
   const sourceTexture = useTexture("/neural-reference.png");
+  const viewport = useThree((state) => state.viewport);
+  const size = useThree((state) => state.size);
+  const anisotropy = useThree((state) =>
+    Math.min(8, state.gl.capabilities.getMaxAnisotropy()),
+  );
   const texture = useMemo(() => {
     const configuredTexture = sourceTexture.clone();
     configuredTexture.colorSpace = SRGBColorSpace;
-    configuredTexture.minFilter = LinearFilter;
+    configuredTexture.minFilter = LinearMipmapLinearFilter;
     configuredTexture.magFilter = LinearFilter;
+    configuredTexture.anisotropy = anisotropy;
+    configuredTexture.generateMipmaps = true;
     configuredTexture.needsUpdate = true;
     return configuredTexture;
-  }, [sourceTexture]);
-  const viewport = useThree((state) => state.viewport);
-  const size = useThree((state) => state.size);
+  }, [anisotropy, sourceTexture]);
   const uniforms = useMemo(
     () => ({
       uTexture: { value: texture },
-      uTime: { value: 0 },
       uImageAspect: { value: imageAspect },
       uViewportAspect: { value: size.width / size.height },
+      uMaskMode: { value: maskValues[maskMode] },
       uOpacity: { value: opacity },
-      uThreshold: { value: threshold },
-      uSoftness: { value: softness },
       uBrightness: { value: brightness },
-      uDepth: { value: depth },
-      uMotion: { value: reducedMotion ? 0 : 1 },
-      uBlur: { value: blur ? 1 : 0 },
-      uPointer: { value: new Vector2() },
+      uContrast: { value: contrast },
+      uOffset: { value: new Vector2() },
       uTexel: {
         value: new Vector2(1 / imageSize[0], 1 / imageSize[1]),
       },
     }),
     [
-      blur,
       brightness,
-      depth,
+      contrast,
       imageAspect,
       imageSize,
+      maskMode,
       opacity,
-      reducedMotion,
       size.height,
       size.width,
-      softness,
       texture,
-      threshold,
     ],
   );
 
@@ -156,41 +181,48 @@ export function NeuralLayer({
 
   useFrame((state, delta) => {
     const material = materialRef.current;
-    const mesh = meshRef.current;
-    if (!material || !mesh) return;
+    if (!material) return;
 
-    const targetX = reducedMotion ? 0 : pointerRef.current.x;
-    const targetY = reducedMotion ? 0 : pointerRef.current.y;
-    material.uniforms.uPointer.value.x = MathUtils.damp(
-      material.uniforms.uPointer.value.x,
-      targetX,
-      4,
+    const pointerX = reducedMotion ? 0 : pointerRef.current.x;
+    const pointerY = reducedMotion ? 0 : pointerRef.current.y;
+    const idleStrength = reducedMotion ? 0 : Math.min(1.2, parallaxPixels * 0.12);
+    const focusX = focusUv ? (focusUv[0] - 0.5) * -0.7 : 0;
+    const focusY = focusUv ? (focusUv[1] - 0.5) * 0.7 : 0;
+    const time = state.clock.elapsedTime;
+    const targetPixelX =
+      pointerX * parallaxPixels +
+      Math.sin(time * 0.11 + renderOrder) * idleStrength +
+      focusX;
+    const targetPixelY =
+      pointerY * parallaxPixels +
+      Math.cos(time * 0.09 + renderOrder) * idleStrength +
+      focusY;
+
+    const offset = material.uniforms.uOffset.value as Vector2;
+    offset.x = MathUtils.damp(
+      offset.x,
+      targetPixelX / Math.max(1, size.width),
+      3.6,
       delta,
     );
-    material.uniforms.uPointer.value.y = MathUtils.damp(
-      material.uniforms.uPointer.value.y,
-      targetY,
-      4,
+    offset.y = MathUtils.damp(
+      offset.y,
+      -targetPixelY / Math.max(1, size.height),
+      3.6,
       delta,
     );
-    material.uniforms.uTime.value = state.clock.elapsedTime;
     material.uniforms.uViewportAspect.value = size.width / size.height;
-
-    const focusX = focusUv ? (0.5 - focusUv[0]) * depth * 0.08 : 0;
-    const focusY = focusUv ? (focusUv[1] - 0.5) * depth * 0.06 : 0;
-    mesh.position.x = MathUtils.damp(mesh.position.x, focusX, 2.4, delta);
-    mesh.position.y = MathUtils.damp(mesh.position.y, focusY, 2.4, delta);
   });
 
   return (
-    <mesh ref={meshRef} renderOrder={Math.round(depth * 10)}>
-      <planeGeometry args={[viewport.width * 1.035, viewport.height * 1.035]} />
+    <mesh renderOrder={renderOrder}>
+      <planeGeometry args={[viewport.width, viewport.height]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
-        transparent
+        transparent={maskMode !== "base"}
         depthWrite={false}
         toneMapped={false}
       />

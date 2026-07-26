@@ -11,6 +11,10 @@ const manifest = JSON.parse(
 );
 const publicHash = manifest.public.sha256;
 const originalHash = manifest.original.sha256;
+const originalSourceHash = manifest.original.sourceSha256;
+const protectedOriginalHashes = new Set(
+  [originalHash, originalSourceHash].filter(Boolean),
+);
 const failures = [];
 
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -58,7 +62,7 @@ let publicProfileFound = false;
 
 for (const path of outputFiles) {
   const bytes = await readFile(path);
-  if (hash(bytes) === originalHash) {
+  if (protectedOriginalHashes.has(hash(bytes))) {
     failures.push(
       `Original microscopy asset found in out/${relative(outDir, path)}.`,
     );
@@ -70,7 +74,11 @@ for (const path of outputFiles) {
   if (!shouldScan) continue;
 
   const text = bytes.toString("utf8");
-  if (text.includes(originalHash)) {
+  if (
+    Array.from(protectedOriginalHashes).some((protectedHash) =>
+      text.includes(protectedHash),
+    )
+  ) {
     failures.push(
       `Original asset hash found in out/${relative(outDir, path)}.`,
     );
@@ -122,7 +130,7 @@ if (trackedResult.status !== 0) {
     try {
       if ((await stat(absolute)).isFile()) {
         const bytes = await readFile(absolute);
-        if (hash(bytes) === originalHash) {
+        if (protectedOriginalHashes.has(hash(bytes))) {
           failures.push(`Git tracks an original-master copy at ${normalized}.`);
         }
       }
@@ -132,7 +140,7 @@ if (trackedResult.status !== 0) {
   }
 }
 
-if (publicHash === originalHash) {
+if (protectedOriginalHashes.has(publicHash)) {
   failures.push("The original and public neural source images are duplicates.");
 }
 

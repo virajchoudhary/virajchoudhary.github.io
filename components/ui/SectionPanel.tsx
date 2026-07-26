@@ -58,6 +58,12 @@ export function SectionPanel({
         event.preventDefault();
         close();
       }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          close();
+        }
+      }}
       onClick={(event) => {
         if (event.target === event.currentTarget) close();
       }}

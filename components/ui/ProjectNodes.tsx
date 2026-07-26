@@ -40,7 +40,10 @@ export function ProjectNodes({
             className="project-node"
             data-project-id={project.id}
             data-selected={selectedId === project.id ? "true" : "false"}
+            data-label-side={position.x > 0.72 ? "left" : "right"}
             aria-label={`Open project: ${project.title}`}
+            aria-haspopup="dialog"
+            aria-expanded={selectedId === project.id}
             style={{
               left: `${position.x * 100}%`,
               top: `${position.y * 100}%`,
@@ -53,8 +56,8 @@ export function ProjectNodes({
             onBlur={() => onHover(undefined)}
             onClick={(event) => onActivate(project.id, event.currentTarget)}
           >
-            <span className="node-halo" aria-hidden="true" />
-            <span className="node-core" aria-hidden="true" />
+            <span className="soma-halo" aria-hidden="true" />
+            <span className="soma-flash" aria-hidden="true" />
             <span className="project-node-label">
               <span>{project.title}</span>
               <small>{project.category}</small>

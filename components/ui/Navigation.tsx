@@ -23,9 +23,6 @@ const items: Array<{ label: string; section: SectionId }> = [
 export function Navigation({ onHome, onSection }: NavigationProps) {
   return (
     <header className="site-navigation">
-      <button className="wordmark" type="button" onClick={onHome}>
-        VC<span aria-hidden="true">/</span>AI
-      </button>
       <nav aria-label="Primary navigation">
         <button type="button" onClick={onHome}>
           Home

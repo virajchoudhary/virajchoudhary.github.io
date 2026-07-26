@@ -25,6 +25,7 @@ interface NeuralSceneProps {
   pulseEvent?: PulseEvent;
   reducedMotion: boolean;
   qualityTier: QualityTier;
+  highlightedEdgeIds: string[];
 }
 
 function Scene({
@@ -35,47 +36,47 @@ function Scene({
   pulseEvent,
   reducedMotion,
   qualityTier,
+  highlightedEdgeIds,
 }: NeuralSceneProps) {
   const imageSize = [profile.image.width, profile.image.height] as const;
-  const includeFarLayer = qualityTier !== "low";
 
   return (
     <>
-      {includeFarLayer ? (
-        <NeuralLayer
-          depth={0.34}
-          imageAspect={profile.image.aspect}
-          imageSize={imageSize}
-          opacity={0.28}
-          threshold={-1}
-          softness={0.12}
-          brightness={0.62}
-          blur
-          pointerRef={pointerRef}
-          focusUv={focusUv}
-          reducedMotion={reducedMotion}
-        />
-      ) : null}
       <NeuralLayer
-        depth={0.68}
+        maskMode="base"
         imageAspect={profile.image.aspect}
         imageSize={imageSize}
-        opacity={0.9}
-        threshold={-1}
-        softness={0.1}
-        brightness={0.98}
+        opacity={1}
+        brightness={1}
+        contrast={1.08}
+        parallaxPixels={1.5}
+        renderOrder={0}
         pointerRef={pointerRef}
         focusUv={focusUv}
         reducedMotion={reducedMotion}
       />
       <NeuralLayer
-        depth={1}
+        maskMode="branches"
         imageAspect={profile.image.aspect}
         imageSize={imageSize}
-        opacity={qualityTier === "low" ? 0.38 : 0.58}
-        threshold={0.52}
-        softness={0.26}
-        brightness={1.18}
+        opacity={qualityTier === "low" ? 0.18 : 0.3}
+        brightness={1.08}
+        contrast={1.12}
+        parallaxPixels={qualityTier === "low" ? 3 : 4.5}
+        renderOrder={1}
+        pointerRef={pointerRef}
+        focusUv={focusUv}
+        reducedMotion={reducedMotion}
+      />
+      <NeuralLayer
+        maskMode="somas"
+        imageAspect={profile.image.aspect}
+        imageSize={imageSize}
+        opacity={qualityTier === "low" ? 0.22 : 0.4}
+        brightness={1.12}
+        contrast={1.08}
+        parallaxPixels={qualityTier === "low" ? 5.5 : 8}
+        renderOrder={2}
         pointerRef={pointerRef}
         focusUv={focusUv}
         reducedMotion={reducedMotion}
@@ -84,15 +85,16 @@ function Scene({
         profile={profile}
         layout={layout}
         event={pulseEvent}
+        highlightedEdgeIds={highlightedEdgeIds}
         reducedMotion={reducedMotion}
-        pulseLimit={qualityTier === "high" ? 6 : qualityTier === "medium" ? 4 : 2}
+        pulseLimit={qualityTier === "high" ? 5 : qualityTier === "medium" ? 3 : 2}
       />
       {qualityTier === "high" && !reducedMotion ? (
         <EffectComposer multisampling={0}>
           <Bloom
-            intensity={0.48}
-            luminanceThreshold={0.72}
-            luminanceSmoothing={0.35}
+            intensity={0.27}
+            luminanceThreshold={0.8}
+            luminanceSmoothing={0.22}
             mipmapBlur
           />
         </EffectComposer>
@@ -107,7 +109,7 @@ export default function NeuralScene(props: NeuralSceneProps) {
     props.qualityTier === "high"
       ? [1, 1.6]
       : props.qualityTier === "medium"
-        ? [1, 1.3]
+        ? [1, 1.25]
         : 1;
 
   return (
@@ -115,7 +117,11 @@ export default function NeuralScene(props: NeuralSceneProps) {
       orthographic
       camera={{ position: [0, 0, 5], zoom: 100 }}
       dpr={dpr}
-      gl={{ alpha: true, antialias: props.qualityTier !== "low" }}
+      gl={{
+        alpha: true,
+        antialias: props.qualityTier !== "low",
+        powerPreference: "high-performance",
+      }}
       frameloop="always"
       aria-hidden="true"
     >

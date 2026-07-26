@@ -30,6 +30,7 @@ interface PulseSystemProps {
   profile: NeuralProfile;
   layout: NetworkLayout;
   event?: PulseEvent;
+  highlightedEdgeIds: string[];
   reducedMotion: boolean;
   pulseLimit: number;
 }
@@ -41,12 +42,13 @@ interface ActivePulse {
   reverse: boolean;
 }
 
-const tailOpacity = [0.95, 0.42, 0.16];
+const tailOpacity = [1, 0.58, 0.3, 0.14, 0.055];
 
 export function PulseSystem({
   profile,
   layout,
   event,
+  highlightedEdgeIds,
   reducedMotion,
   pulseLimit,
 }: PulseSystemProps) {
@@ -55,13 +57,13 @@ export function PulseSystem({
   const meshRefs = useRef<Array<Mesh | null>>([]);
   const activePulses = useRef<Array<ActivePulse | undefined>>([]);
 
-  const geometry = useMemo(() => new SphereGeometry(0.011, 8, 8), []);
+  const geometry = useMemo(() => new SphereGeometry(0.016, 10, 10), []);
   const materials = useMemo(
     () =>
       tailOpacity.map(
         (opacity) =>
           new MeshBasicMaterial({
-            color: "#edf7ff",
+            color: "#f7fcff",
             transparent: true,
             opacity,
             blending: AdditiveBlending,
@@ -135,7 +137,7 @@ export function PulseSystem({
       activePulses.current[index] = {
         curve,
         startedAt: now + index * 125,
-        duration: 1150 + index * 120,
+        duration: 980 + index * 105,
         reverse,
       };
     });
@@ -146,8 +148,9 @@ export function PulseSystem({
 
     for (let pulseIndex = 0; pulseIndex < pulseLimit; pulseIndex += 1) {
       const pulse = activePulses.current[pulseIndex];
-      for (let tailIndex = 0; tailIndex < 3; tailIndex += 1) {
-        const mesh = meshRefs.current[pulseIndex * 3 + tailIndex];
+      for (let tailIndex = 0; tailIndex < tailOpacity.length; tailIndex += 1) {
+        const mesh =
+          meshRefs.current[pulseIndex * tailOpacity.length + tailIndex];
         if (!mesh) continue;
         if (!pulse || now < pulse.startedAt) {
           mesh.visible = false;
@@ -155,7 +158,7 @@ export function PulseSystem({
         }
 
         const progress = (now - pulse.startedAt) / pulse.duration;
-        const tailProgress = progress - tailIndex * 0.028;
+        const tailProgress = progress - tailIndex * 0.022;
         if (tailProgress < 0 || tailProgress > 1) {
           mesh.visible = false;
           continue;
@@ -163,7 +166,7 @@ export function PulseSystem({
 
         const t = pulse.reverse ? 1 - tailProgress : tailProgress;
         pulse.curve.getPointAt(Math.max(0, Math.min(1, t)), mesh.position);
-        const scale = 1 - tailIndex * 0.2;
+        const scale = 1 - tailIndex * 0.14;
         mesh.scale.setScalar(scale);
         mesh.visible = true;
       }
@@ -174,7 +177,7 @@ export function PulseSystem({
     }
   });
 
-  const activeEdges = new Set(event?.edgeIds ?? []);
+  const highlightedEdges = new Set(highlightedEdgeIds);
 
   return (
     <group>
@@ -185,27 +188,30 @@ export function PulseSystem({
           <Line
             key={path.id}
             points={curve.getPoints(36)}
-            color="#dce9ef"
-            lineWidth={activeEdges.has(path.id) ? 0.9 : 0.32}
+            color="#f2fbff"
+            lineWidth={highlightedEdges.has(path.id) ? 0.72 : 0.25}
             transparent
-            opacity={activeEdges.has(path.id) ? 0.34 : 0.055}
+            opacity={highlightedEdges.has(path.id) ? 0.34 : 0}
             depthWrite={false}
             toneMapped={false}
           />
         );
       })}
-      {Array.from({ length: pulseLimit * 3 }, (_, index) => (
+      {Array.from(
+        { length: pulseLimit * tailOpacity.length },
+        (_, index) => (
         <mesh
           key={index}
           ref={(mesh) => {
             meshRefs.current[index] = mesh;
           }}
           geometry={geometry}
-          material={materials[index % 3]}
+          material={materials[index % tailOpacity.length]}
           visible={false}
           renderOrder={50}
         />
-      ))}
+        ),
+      )}
     </group>
   );
 }

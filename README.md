@@ -7,7 +7,8 @@ Phase 1 of a neural-network portfolio built with Next.js, React Three Fiber, cus
 Application code references only `/neural-reference.png`. That runtime file is generated and ignored by Git.
 
 - `assets/neural-reference-public.png` is the committed public fallback.
-- `.local-assets/neural-reference-original.png` is an optional, untracked local review master.
+- `.local-assets/neural-reference-original.png` is the protected 600×476 source.
+- `.local-assets/neural-reference-original-4k.png` is the protected 3840×3046 fidelity-preserving local review master selected by original mode.
 - `public/neural-reference.png` is selected at runtime by the asset scripts and is never committed.
 
 The original image must not be committed, pushed, uploaded to a PR, or included in CI artifacts.
@@ -28,13 +29,26 @@ npm run dev:public
 
 Open [http://localhost:3000](http://localhost:3000).
 
-For local review with the protected original image, place it at `.local-assets/neural-reference-original.png`, then run:
+For local review with the protected original image, place the prepared high-resolution master at `.local-assets/neural-reference-original-4k.png`, then run:
 
 ```bash
 npm run dev
 ```
 
 Original mode fails clearly if that local-only file is unavailable.
+
+## Visual map editing
+
+The microscopy texture is rendered once as the sharp base image. Two selective shader layers derive thick-branch and soma masks from the same texture; they do not render blurred full-image copies.
+
+Both image profiles have independent graph data in `data/neuralProfiles.ts`:
+
+- `projectAnchors` stores soma centres as normalised source-image UV coordinates.
+- `graphPoints` stores editable decorative junctions used for traversal.
+- `pulsePaths` stores manually traced branch curves and their control points.
+- `desktop` and `mobile` layouts are intentionally separate because cover-cropping exposes different somas at each aspect ratio.
+
+Keep anchors centred on bright biological somas and trace curves along visible fibres. Do not add synthetic node-and-line geometry that is not present in the selected image.
 
 ## Validation
 

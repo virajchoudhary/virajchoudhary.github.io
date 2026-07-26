@@ -20,13 +20,13 @@ const destination = join(root, "public", "neural-reference.png");
 
 let source;
 if (mode === "original") {
-  source = join(root, ".local-assets", "neural-reference-original.png");
+  source = join(root, ".local-assets", "neural-reference-original-4k.png");
   try {
     await readFile(source);
   } catch {
     throw new Error(
-      "The local microscopy master is unavailable. Restore it at " +
-        "`.local-assets/neural-reference-original.png` before running original mode. " +
+      "The local 4K microscopy master is unavailable. Restore it at " +
+        "`.local-assets/neural-reference-original-4k.png` before running original mode. " +
         "Use `npm run dev:public` when only committed assets are available.",
     );
   }

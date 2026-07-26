@@ -97,7 +97,7 @@ export function PortfolioExperience() {
     const interval = window.setInterval(() => {
       const index = pulseCounter.current % layout.pulsePaths.length;
       sendPulse([layout.pulsePaths[index].id]);
-    }, qualityTier === "low" ? 7200 : 5200);
+    }, qualityTier === "low" ? 3900 : qualityTier === "medium" ? 3600 : 3100);
     return () => window.clearInterval(interval);
   }, [
     layout.pulsePaths,
@@ -155,6 +155,11 @@ export function PortfolioExperience() {
     : hoveredProject
       ? layout.projectAnchors[hoveredProject]
       : undefined;
+  const highlightedEdgeIds = hoveredProject
+    ? pathsForProject(layout, hoveredProject, 3)
+    : selectedProject
+      ? pathsForProject(layout, selectedProject, 3)
+      : [];
 
   return (
     <main
@@ -175,6 +180,7 @@ export function PortfolioExperience() {
             pulseEvent={pulseEvent}
             reducedMotion={prefersReducedMotion}
             qualityTier={qualityTier}
+            highlightedEdgeIds={highlightedEdgeIds}
           />
         ) : null}
       </div>
@@ -215,9 +221,6 @@ export function PortfolioExperience() {
         onHover={handleHover}
       />
       <SocialLinks />
-      <p className="profile-indicator" aria-hidden="true">
-        Neural profile · {profile.id}
-      </p>
       <AccessibleProjectList />
       <ProjectPanel
         project={
