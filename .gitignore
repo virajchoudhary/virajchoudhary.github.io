@@ -1,0 +1,14 @@
+.local-assets/
+public/neural-reference.png
+artifacts/qa/
+
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+.DS_Store
+Thumbs.db
