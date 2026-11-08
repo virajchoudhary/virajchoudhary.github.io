@@ -14,6 +14,8 @@ if (themeColor) themeColor.content = theme === "dark" ? "#191919" : "#fdfdfd";
 document.addEventListener("DOMContentLoaded", () => {
   const button = document.querySelector("[data-theme-toggle]");
   if (!button) return;
+  let desiredTheme = theme;
+  let activeTransition = null;
 
   function updateTheme() {
     const dark = themeRoot.dataset.theme === "dark";
@@ -25,14 +27,55 @@ document.addEventListener("DOMContentLoaded", () => {
     if (themeColor) themeColor.content = dark ? "#191919" : "#fdfdfd";
   }
 
+  function applyDesiredTheme() {
+    themeRoot.classList.add("theme-switching");
+    themeRoot.dataset.theme = desiredTheme;
+    updateTheme();
+    try {
+      localStorage.setItem("portfolio-theme", desiredTheme);
+    } catch {}
+  }
+
+  function finishThemeSwitch(transition) {
+    if (activeTransition !== transition) return;
+    activeTransition = null;
+    if (!themeRoot.classList.contains("theme-switching")) return;
+    themeRoot.classList.remove("theme-switching");
+  }
+
+  function clearImmediateSwitch() {
+    if (!themeRoot.classList.contains("theme-switching")) return;
+    void document.body.offsetHeight;
+    themeRoot.classList.remove("theme-switching");
+  }
+
   updateTheme();
   button.hidden = false;
   button.addEventListener("click", () => {
-    themeRoot.classList.add("theme-transition");
-    themeRoot.dataset.theme = themeRoot.dataset.theme === "dark" ? "light" : "dark";
-    updateTheme();
+    desiredTheme = desiredTheme === "dark" ? "light" : "dark";
+
+    if (activeTransition) activeTransition.skipTransition();
+
+    if (
+      typeof document.startViewTransition !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      applyDesiredTheme();
+      if (!activeTransition) clearImmediateSwitch();
+      return;
+    }
+
     try {
-      localStorage.setItem("portfolio-theme", themeRoot.dataset.theme);
-    } catch {}
+      const transition = document.startViewTransition(applyDesiredTheme);
+      activeTransition = transition;
+      transition.ready.catch(() => {});
+      transition.finished.then(
+        () => finishThemeSwitch(transition),
+        () => finishThemeSwitch(transition)
+      );
+    } catch {
+      applyDesiredTheme();
+      if (!activeTransition) clearImmediateSwitch();
+    }
   });
 });

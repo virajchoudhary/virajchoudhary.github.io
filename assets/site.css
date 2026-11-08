@@ -860,7 +860,7 @@ html.viewer-open {
   background: var(--paper);
   color: var(--muted);
   cursor: pointer;
-  transition: background-color 220ms ease, color 180ms ease;
+  transition: none;
 }
 
 .theme-toggle .icon {
@@ -872,10 +872,44 @@ html.viewer-open {
   color: var(--ink);
 }
 
-.theme-transition body,
-.theme-transition .viewer,
-.theme-transition .case-sidebar {
-  transition: background-color 220ms ease, color 220ms ease;
+:root.theme-switching,
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes theme-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  ::view-transition-group(root) {
+    animation: none;
+  }
+
+  ::view-transition-image-pair(root) {
+    isolation: auto;
+  }
+
+  ::view-transition-old(root) {
+    animation: theme-fade-out 140ms ease-out both;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
 }
 
 :root[data-theme="dark"] {
