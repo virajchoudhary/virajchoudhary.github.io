@@ -7,11 +7,11 @@
 }
 
 :root {
-  color-scheme: light;
-  --paper: #fdfdfd;
-  --ink: #111111;
-  --muted: #707070;
-  --rule: #dedede;
+  color-scheme: dark;
+  --paper: #191919;
+  --ink: #e7e7e7;
+  --muted: #a4a4a4;
+  --rule: #373737;
   --column: 550px;
   --body-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-family: var(--body-font);
@@ -569,7 +569,7 @@ html.viewer-open {
 
 .resume-sheet {
   flex: 0 0 auto;
-  width: min(492px, 100%, calc((100dvh - 128px) * 17 / 22));
+  width: min(492px, 100%, calc((100dvh - 128px) * 210 / 297));
   background: #fff;
   box-shadow: 0 2px 18px rgba(0, 0, 0, 0.025);
 }
@@ -928,12 +928,12 @@ html.viewer-open {
   }
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --paper: #191919;
-  --ink: #e7e7e7;
-  --muted: #a4a4a4;
-  --rule: #373737;
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #fdfdfd;
+  --ink: #111111;
+  --muted: #707070;
+  --rule: #dedede;
 }
 
 [data-theme="dark"] a,
@@ -999,7 +999,7 @@ html.viewer-open {
 }
 
 @media print {
-  :root[data-theme="dark"] {
+  :root[data-theme] {
     --paper: #ffffff;
     --ink: #111111;
     --muted: #666666;

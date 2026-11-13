@@ -1,6 +1,6 @@
 const themeRoot = document.documentElement;
 const requestedTheme = new URLSearchParams(location.search).get("theme");
-let theme = "light";
+let theme = "dark";
 try {
   const savedTheme = localStorage.getItem("portfolio-theme");
   if (savedTheme === "light" || savedTheme === "dark") theme = savedTheme;
@@ -10,6 +10,8 @@ themeRoot.dataset.theme = theme;
 
 const themeColor = document.querySelector('meta[name="theme-color"]');
 if (themeColor) themeColor.content = theme === "dark" ? "#191919" : "#fdfdfd";
+const colorScheme = document.querySelector('meta[name="color-scheme"]');
+if (colorScheme) colorScheme.content = theme;
 
 document.addEventListener("DOMContentLoaded", () => {
   const button = document.querySelector("[data-theme-toggle]");
@@ -25,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     button.title = label;
     button.querySelector(".icon").className = `icon icon-${dark ? "sun" : "moon"}`;
     if (themeColor) themeColor.content = dark ? "#191919" : "#fdfdfd";
+    if (colorScheme) colorScheme.content = dark ? "dark" : "light";
   }
 
   function applyDesiredTheme() {
