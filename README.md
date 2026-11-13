@@ -43,10 +43,11 @@ unapproved media outside this repository. Preserve a Git reference before
 updating the published files; use a revert commit for rollback rather than
 rewriting shared history.
 
-Kesten is the working brand for the historical `stock-predictor-system`
-project. Its case-study URL retains `stock-workspace` for stable links. The
-newer application remains a local continuation; the portfolio does not claim
-trading returns or a production deployment.
+Kerquant is the current local identity for the historical `stock-predictor-system`
+project. Its case-study URL retains `stock-workspace` for stable links.
+[Release PR #16](https://github.com/virajchoudhary/stock-predictor-system/pull/16)
+is a draft and remains open and unmerged. The portfolio does not claim trading
+returns or a production deployment.
 
 ## Third-party notices
 
