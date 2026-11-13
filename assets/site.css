@@ -33,7 +33,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 460 14px/20px var(--body-font);
+  font: 460 15px/22px var(--body-font);
 }
 
 a {
@@ -42,7 +42,7 @@ a {
   text-decoration-color: #777777;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
-  transition: color 180ms ease, text-decoration-color 220ms ease;
+  transition: color 160ms ease, text-decoration-color 180ms ease;
 }
 
 a:hover {
@@ -62,7 +62,7 @@ button {
 }
 
 p {
-  margin: 0 0 16px;
+  margin: 0 0 14px;
 }
 
 h1,
@@ -104,7 +104,7 @@ img {
 
 .site-shell {
   width: min(var(--column), calc(100% - 48px));
-  margin: 80px auto 64px;
+  margin: 64px auto 48px;
 }
 
 .site-shell:has(> .case-page) {
@@ -123,8 +123,8 @@ img {
 }
 
 .identity h1 {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .identity p {
@@ -137,7 +137,7 @@ img {
 }
 
 .index-section {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 .index-section > h2,
@@ -150,7 +150,7 @@ img {
 .index-section,
 .year-label,
 .project-link {
-  transition: opacity 220ms ease;
+  transition: opacity 160ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -173,8 +173,8 @@ img {
 
 .year-label {
   color: var(--muted);
-  font-size: 14px;
-  line-height: 28px;
+  font-size: 15px;
+  line-height: 30px;
 }
 
 .year-list {
@@ -185,15 +185,15 @@ img {
 }
 
 .year-list > li {
-  min-height: 28px;
+  min-height: 30px;
 }
 
 .project-link {
   display: block;
-  min-height: 28px;
+  min-height: 30px;
   padding: 4px 0;
   color: var(--ink);
-  line-height: 20px;
+  line-height: 22px;
   text-decoration: none;
 }
 
@@ -201,7 +201,7 @@ img {
   text-decoration: underline;
   text-decoration-color: #777777;
   text-underline-offset: 2px;
-  transition: color 220ms ease, text-decoration-color 220ms ease;
+  transition: color 160ms ease, text-decoration-color 180ms ease;
 }
 
 .project-link:hover .project-title {
@@ -211,13 +211,14 @@ img {
 
 .project-description,
 .project-state {
+  display: inline-block;
   color: var(--muted);
-  line-height: 20px;
+  line-height: 22px;
 }
 
 .project-description {
   margin-left: 8px;
-  transition: color 220ms ease, opacity 220ms ease;
+  transition: color 160ms ease, opacity 160ms ease;
 }
 
 .project-link:hover .project-description {
@@ -227,7 +228,7 @@ img {
 
 .project-state {
   margin-left: 6px;
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -260,10 +261,14 @@ img {
   margin-top: 0;
 }
 
+.index-page .index-section + .index-section {
+  margin-top: 24px;
+}
+
 .case-layout {
   display: grid;
   width: min(1200px, calc(100% - 48px));
-  margin: 80px auto 64px;
+  margin: 64px auto 48px;
   grid-template-columns: minmax(0, 1fr) 550px minmax(0, 1fr);
   align-items: start;
 }
@@ -271,7 +276,7 @@ img {
 .case-sidebar {
   position: sticky;
   z-index: 2;
-  top: 80px;
+  top: 64px;
   grid-column: 1;
   grid-row: 1;
   justify-self: end;
@@ -287,13 +292,13 @@ img {
 .case-nav {
   display: grid;
   gap: 8px;
-  margin-top: 44px;
+  margin-top: 32px;
 }
 
 .case-nav a {
   width: fit-content;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
   text-decoration: underline;
   text-decoration-color: transparent;
@@ -319,7 +324,7 @@ img {
 }
 
 .case-heading h1 {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .case-heading .case-meta {
@@ -327,19 +332,19 @@ img {
 }
 
 .case-intro {
-  margin: 24px 0 0;
-  font-size: 14px;
-  line-height: 20px;
+  margin: 20px 0 0;
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .case-section {
-  margin-top: 48px;
+  margin-top: 32px;
   scroll-margin-top: 96px;
 }
 
 .case-section > h2 {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .case-section p:last-child {
@@ -368,7 +373,7 @@ img {
 }
 
 .subheading {
-  margin: 24px 0 12px;
+  margin: 20px 0 10px;
   font-weight: 600;
 }
 
@@ -629,7 +634,7 @@ html.viewer-open {
 .media figcaption {
   margin-top: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 18px;
 }
 
@@ -648,7 +653,7 @@ html.viewer-open {
   margin: 0;
   padding: 0;
   border: 0;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .evidence-list li + li {
@@ -663,10 +668,19 @@ html.viewer-open {
 
 .contribution-list li {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--rule);
+}
+
+.contribution-list li > a {
+  min-width: 0;
+}
+
+.contribution-list li > :last-child:not(a) {
+  flex-shrink: 0;
 }
 
 .contribution-state {
@@ -677,7 +691,7 @@ html.viewer-open {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 48px;
+  margin-top: 32px;
   padding-top: 12px;
   border-top: 1px solid var(--rule);
 }
@@ -762,12 +776,12 @@ html.viewer-open {
   }
 
   .year-label {
-    line-height: 36px;
+    line-height: 38px;
   }
 
   .year-list > li,
   .project-link {
-    min-height: 36px;
+    min-height: 38px;
   }
 
   .project-link {
@@ -857,7 +871,7 @@ html.viewer-open {
 
 .title-row {
   position: relative;
-  min-height: 20px;
+  min-height: 22px;
   padding-right: 44px;
 }
 
