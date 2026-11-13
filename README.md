@@ -43,9 +43,13 @@ unapproved media outside this repository. Preserve a Git reference before
 updating the published files; use a revert commit for rollback rather than
 rewriting shared history.
 
-Kerquant is the current local identity for the historical `stock-predictor-system`
-project. Its case-study URL retains `stock-workspace` for stable links.
-[Release PR #16](https://github.com/virajchoudhary/stock-predictor-system/pull/16)
+Kesten is the final project name for the historical `stock-predictor-system`
+project, now hosted at [virajchoudhary/kesten](https://github.com/virajchoudhary/kesten).
+Its case-study URL retains `stock-workspace` for stable links. Earlier release
+records and the unchanged approved resume use Kerquant. Double-Heston is hosted
+at [virajchoudhary/double-heston](https://github.com/virajchoudhary/double-heston);
+the Bitcoin research companion remains separate.
+[Release PR #16](https://github.com/virajchoudhary/kesten/pull/16)
 is a draft and remains open and unmerged. The portfolio does not claim trading
 returns or a production deployment.
 
